@@ -51,33 +51,30 @@ exports.createEvent = async (req, res) => {
       imageUrl = `/uploads/${req.file.filename}`;
     }
 
-    // Extract admin ID from token if it exists (not role anymore)
-    // Extract adminId from token if it exists (not id anymore)
-    // In eventController.js createEvent function
-let adminId = null;
+    let adminId = null;
 
-if (req.headers.authorization) {
-  const token = req.headers.authorization.split(' ')[1];
-  try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    console.log('Decoded token:', decoded);
-    
-    // Try to get adminId directly from the token
-    if (decoded.adminId) {
-      adminId = decoded.adminId;
-    } 
-    // If not found, try to look up the Admin to get the adminId
-    else if (decoded.id) {
-      const admin = await Admin.findById(decoded.id);
-      if (admin) {
-        adminId = admin.adminId;
-        console.log('Retrieved adminId from database:', adminId);
+    if (req.headers.authorization) {
+      const token = req.headers.authorization.split(' ')[1];
+      try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        console.log('Decoded token:', decoded);
+        
+        // Try to get adminId directly from the token
+        if (decoded.adminId) {
+          adminId = decoded.adminId;
+        } 
+        // If not found, try to look up the Admin to get the adminId
+        else if (decoded.id) {
+          const admin = await Admin.findById(decoded.id);
+          if (admin) {
+            adminId = admin.adminId;
+            console.log('Retrieved adminId from database:', adminId);
+          }
+        }
+      } catch (error) {
+        console.error('Error processing token:', error);
       }
     }
-  } catch (error) {
-    console.error('Error processing token:', error);
-  }
-}
 
     // Create new event and reference the admin
     const newEvent = new Event({
@@ -108,7 +105,8 @@ if (req.headers.authorization) {
     });
   }
 };
-// Add this new function to get events by role
+
+// Get events by admin role/ID
 exports.getEventsByAdmin = async (req, res) => {
   try {
     // Get the adminId from the JWT token
@@ -142,8 +140,7 @@ exports.getEventsByAdmin = async (req, res) => {
   }
 };
 
-// Add this function to your eventController.js
-
+// Get a single event by ID
 exports.getEventById = async (req, res) => {
   try {
     const { id } = req.params;
@@ -159,6 +156,19 @@ exports.getEventById = async (req, res) => {
       });
     }
     
+    // If the event has leadAdmin, fetch the admin details as well
+    if (event.leadAdmin) {
+      const leadAdmin = await Admin.findById(event.leadAdmin)
+        .select('adminId -_id')  // Only return adminId, exclude password
+        .lean();
+      
+      if (leadAdmin) {
+        event.leadAuth = {
+          id: leadAdmin.adminId
+        };
+      }
+    }
+    
     res.status(200).json(event);
   } catch (error) {
     console.error('Error fetching event by ID:', error);
@@ -170,6 +180,34 @@ exports.getEventById = async (req, res) => {
   }
 };
 
+// Get admin details by ID (for fetching lead admin details)
+exports.getAdminById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    const admin = await Admin.findById(id)
+      .select('adminId role -_id')  // Only return necessary fields, exclude password
+      .lean();
+    
+    if (!admin) {
+      return res.status(404).json({
+        success: false,
+        message: 'Admin not found'
+      });
+    }
+    
+    res.status(200).json(admin);
+  } catch (error) {
+    console.error('Error fetching admin by ID:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch admin',
+      error: error.message
+    });
+  }
+};
+
+// Update an event
 exports.updateEvent = async (req, res) => {
   try {
     const { id } = req.params;
@@ -203,6 +241,13 @@ exports.updateEvent = async (req, res) => {
     
     if (req.file) {
       // Handle new image upload
+      // Delete the old image if it exists
+      if (event.imageUrl) {
+        const oldImagePath = path.join(__dirname, '..', event.imageUrl);
+        if (fs.existsSync(oldImagePath)) {
+          fs.unlinkSync(oldImagePath);
+        }
+      }
       updateData.imageUrl = `/uploads/${req.file.filename}`;
     }
     
@@ -222,14 +267,21 @@ exports.updateEvent = async (req, res) => {
       if (req.body.leadAuth) {
         const leadAuth = JSON.parse(req.body.leadAuth);
         
-        // Only update password if a new one is provided
-        if (leadAuth.password && leadAuth.password.trim() !== '') {
-          // Update the lead admin's password
-          const leadAdmin = await Admin.findById(event.leadAdmin);
-          if (leadAdmin) {
-            leadAdmin.password = leadAuth.password; // The pre-save hook will hash it
-            await leadAdmin.save();
+        // Find the lead admin
+        const leadAdmin = await Admin.findById(event.leadAdmin);
+        
+        if (leadAdmin) {
+          // Update the admin ID if it has changed
+          if (leadAuth.id && leadAuth.id !== leadAdmin.adminId) {
+            leadAdmin.adminId = leadAuth.id;
           }
+          
+          // Only update password if a new one is provided
+          if (leadAuth.password && leadAuth.password.trim() !== '') {
+            leadAdmin.password = leadAuth.password; // The pre-save hook will hash it
+          }
+          
+          await leadAdmin.save();
         }
       }
     } else {
@@ -247,11 +299,20 @@ exports.updateEvent = async (req, res) => {
       };
       
       // Handle lead auth if provided
-      if (leadAuth && leadAuth.password && leadAuth.password.trim() !== '') {
-        // Update the lead admin's password
+      if (leadAuth) {
         const leadAdmin = await Admin.findById(event.leadAdmin);
+        
         if (leadAdmin) {
-          leadAdmin.password = leadAuth.password; // The pre-save hook will hash it
+          // Update the admin ID if it has changed
+          if (leadAuth.id && leadAuth.id !== leadAdmin.adminId) {
+            leadAdmin.adminId = leadAuth.id;
+          }
+          
+          // Only update password if a new one is provided
+          if (leadAuth.password && leadAuth.password.trim() !== '') {
+            leadAdmin.password = leadAuth.password; // The pre-save hook will hash it
+          }
+          
           await leadAdmin.save();
         }
       }
@@ -279,6 +340,7 @@ exports.updateEvent = async (req, res) => {
   }
 };
 
+// Delete an event
 exports.deleteEvent = async (req, res) => {
   try {
     const { id } = req.params;
@@ -313,6 +375,12 @@ exports.deleteEvent = async (req, res) => {
       if (fs.existsSync(imagePath)) {
         fs.unlinkSync(imagePath);
       }
+    }
+    
+    // Delete the lead admin associated with this event
+    if (event.leadAdmin) {
+      await Admin.findByIdAndDelete(event.leadAdmin);
+      console.log(`Lead admin ${event.leadAdmin} deleted successfully`);
     }
     
     // Delete the event

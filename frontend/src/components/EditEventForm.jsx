@@ -294,38 +294,44 @@ const EditEventForm = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    
-    if (validateForm()) {
-      try {
-        setIsSubmitting(true);
-        setSubmitError('');
-        
-        // Create a clean copy of form data for submission
-        const submissionData = {
-          ...formData,
-          // Only include the relevant prizes based on participant category
-          prizes: formData.participantCategory === 'men & women' 
-            ? { men: formData.prizes.men, women: formData.prizes.women }
-            : { [formData.participantCategory]: formData.prizes[formData.participantCategory] }
-        };
-        
-        // Call the API service to update the event
-        const data = await updateEvent(id, submissionData);
-        console.log('Event updated successfully:', data);
-        
-        // Navigate back to the event details page
-        navigate(`/modify-events/${id}`);
-        
-      } catch (error) {
-        console.error('Error updating event:', error);
-        setSubmitError(error.message || 'Failed to update event. Please try again.');
-      } finally {
-        setIsSubmitting(false);
+  // In EditEventForm.jsx, update your handleSubmit function
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  
+  if (validateForm()) {
+    try {
+      setIsSubmitting(true);
+      setSubmitError('');
+      
+      // Create a clean copy of form data for submission
+      const submissionData = {
+        ...formData,
+        // Only include the relevant prizes based on participant category
+        prizes: formData.participantCategory === 'men & women' 
+          ? { men: formData.prizes.men, women: formData.prizes.women }
+          : { [formData.participantCategory]: formData.prizes[formData.participantCategory] }
+      };
+      
+      // Only include password in leadAuth if it was changed
+      if (!formData.leadAuth.password.trim()) {
+        submissionData.leadAuth = { id: formData.leadAuth.id };
       }
+      
+      // Call the API service to update the event
+      const data = await updateEvent(id, submissionData);
+      console.log('Event updated successfully:', data);
+      
+      // Navigate back to the event details page
+      navigate(`/modify-events/${id}`);
+      
+    } catch (error) {
+      console.error('Error updating event:', error);
+      setSubmitError(error.message || 'Failed to update event. Please try again.');
+    } finally {
+      setIsSubmitting(false);
     }
-  };
+  }
+};
 
   // Render prize fields based on participant category
   const renderPrizeFields = () => {

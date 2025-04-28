@@ -137,3 +137,30 @@ exports.getAdminProfile = async (req, res) => {
     res.status(500).json({ message: 'Server error' });
   }
 };
+
+// Add this to your adminController.js
+exports.getAdminById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    const admin = await Admin.findById(id)
+      .select('adminId role -_id')  // Only return necessary fields, exclude password
+      .lean();
+    
+    if (!admin) {
+      return res.status(404).json({
+        success: false,
+        message: 'Admin not found'
+      });
+    }
+    
+    res.status(200).json(admin);
+  } catch (error) {
+    console.error('Error fetching admin by ID:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch admin',
+      error: error.message
+    });
+  }
+};

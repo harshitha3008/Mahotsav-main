@@ -72,6 +72,8 @@ router.get('/:id', protect, eventController.getEventById);
 router.put('/:id', protect, upload.single('image'), eventController.updateEvent);
 // Add DELETE route for events
 router.delete('/:id', protect, eventController.deleteEvent);
+router.get('/admin/:id', protect, eventController.getAdminById);
+
 
 
 // In your api.js file, add this:

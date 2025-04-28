@@ -16,4 +16,5 @@ router.post('/login', loginAdmin);
 // Get admin profile (protected route)
 router.get('/profile', authMiddleware, getAdminProfile);
 
+
 module.exports = router;
