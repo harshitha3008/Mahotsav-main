@@ -82,21 +82,9 @@ const Header = ({ onAdminLoginClick, onUserLoginClick, onUserRegisterClick }) =>
             </button>
           </>
         ) : (
-          // Show profile icon if user is logged in
-          <div className="relative">
-            <button 
-              className="flex items-center justify-center"
-              onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-            >
-              <FaUserCircle className="text-[#A3CFF0] text-3xl hover:text-[#89BCE6] cursor-pointer" />
-            </button>
-            {isDropdownOpen && (
               <div className="absolute right-0 mt-2 w-32 bg-[#1a1a1a] text-white shadow-lg rounded-md overflow-hidden border border-[#A3CFF0]">
-                <a onClick={handleProfile} className="block px-4 py-2 hover:bg-[#A3CFF0] hover:text-black cursor-pointer">Profile</a>
                 <a onClick={handleLogout} className="block px-4 py-2 hover:bg-[#A3CFF0] hover:text-black cursor-pointer">Logout</a>
               </div>
-            )}
-          </div>
         )}
       </nav>
     </header>

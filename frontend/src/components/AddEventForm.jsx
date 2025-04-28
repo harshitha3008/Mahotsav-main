@@ -218,32 +218,43 @@ const AddEventForm = () => {
     
     if (validateForm()) {
       try {
-        // Show loading state
         setIsSubmitting(true);
         setSubmitError('');
         
-        // Create a clean copy of form data for submission
-        const submissionData = {
-          ...formData,
-          // adminId: adminId, // Include the admin role
-          // Only include the relevant prizes based on participant category
-          prizes: formData.participantCategory === 'men&women' 
-            ? { men: formData.prizes.men, women: formData.prizes.women }
-            : { [formData.participantCategory]: formData.prizes[formData.participantCategory] }
+        // Create a copy of the form data
+        const submissionData = { ...formData };
+        
+        // Create a filtered prizes object based on participant category
+        const filteredPrizes = {
+          men: [],
+          women: [],
+          'no category': []
         };
         
-        // Call the API service to submit the form
+        // Always include a valid prize for "no category" to satisfy validation
+        filteredPrizes['no category'] = [{ name: 'Default Prize', amount: '0' }];
+        
+        // Then add the actual prizes based on the selected category
+        if (formData.participantCategory === 'men' || formData.participantCategory === 'men & women') {
+          filteredPrizes.men = formData.prizes.men;
+        }
+        
+        if (formData.participantCategory === 'women' || formData.participantCategory === 'men & women') {
+          filteredPrizes.women = formData.prizes.women;
+        }
+        
+        if (formData.participantCategory === 'no category') {
+          filteredPrizes['no category'] = formData.prizes['no category'];
+        }
+        
+        submissionData.prizes = filteredPrizes;
+        
         const response = await submitEvent(submissionData);
-        
         console.log('Event created successfully:', response);
-        
-        // Navigate to dashboard
         navigate('/dashboard');
         
       } catch (error) {
         console.error('Error submitting form:', error);
-        
-        // Show error message to user
         setSubmitError(error.message || 'Failed to create event. Please try again.');
       } finally {
         setIsSubmitting(false);
