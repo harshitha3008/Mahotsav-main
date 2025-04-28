@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { X } from "lucide-react";
+import { X, Copy, Check } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
@@ -15,11 +15,23 @@ const RegisterForm = ({ isOpen, onClose, openLoginForm }) => {
     password: "",
     confirmPassword: ""
   });
-  const [passwordError, setPasswordError] = useState("");
+  const [errors, setErrors] = useState({
+    password: "",
+    confirmPassword: "",
+    server: ""
+  });
   const [registrationSuccess, setRegistrationSuccess] = useState(false);
   const [generatedMHID, setGeneratedMHID] = useState("");
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [copied, setCopied] = useState(false);
+
+  // Password validation
+  const validatePassword = (password) => {
+    if (password.length < 8) {
+      return "Password must be at least 8 characters long";
+    }
+    return "";
+  };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -28,30 +40,43 @@ const RegisterForm = ({ isOpen, onClose, openLoginForm }) => {
       [name]: value
     });
 
-    // Check password match when either password field changes
-    if (name === "password" || name === "confirmPassword") {
-      if (name === "confirmPassword" && value !== formData.password) {
-        setPasswordError("Passwords do not match");
-      } else if (name === "password" && value !== formData.confirmPassword && formData.confirmPassword) {
-        setPasswordError("Passwords do not match");
-      } else {
-        setPasswordError("");
-      }
+    // Validate fields on change
+    if (name === "password") {
+      const passwordError = validatePassword(value);
+      setErrors(prev => ({
+        ...prev,
+        password: passwordError,
+        confirmPassword: value !== formData.confirmPassword && formData.confirmPassword ? "Passwords do not match" : ""
+      }));
+    } else if (name === "confirmPassword") {
+      setErrors(prev => ({
+        ...prev,
+        confirmPassword: value !== formData.password ? "Passwords do not match" : ""
+      }));
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // Validate password before submission
+    const passwordError = validatePassword(formData.password);
+    if (passwordError) {
+      setErrors(prev => ({ ...prev, password: passwordError }));
+      return;
+    }
+
+    // Check if passwords match
     if (formData.password !== formData.confirmPassword) {
-      setPasswordError("Passwords do not match");
+      setErrors(prev => ({ ...prev, confirmPassword: "Passwords do not match" }));
       return;
     }
 
     try {
       setLoading(true);
-      setError("");
+      setErrors(prev => ({ ...prev, server: "" }));
       
-      // Create the request data (exclude confirmPassword as it's not needed in the backend)
+      // Create the request data
       const requestData = {
         firstName: formData.firstName,
         lastName: formData.lastName,
@@ -63,17 +88,7 @@ const RegisterForm = ({ isOpen, onClose, openLoginForm }) => {
       };
       
       // Send registration request to backend API
-      // Uncomment this line to use the actual API
       const response = await axios.post('http://localhost:10000/api/users/register', requestData);
-      
-      // For development purposes, you can use this mock response
-      // const response = {
-      //   data: {
-      //     mhid: "MH26" + Math.floor(1 + Math.random() * 100),
-      //     firstName: formData.firstName,
-      //     email: formData.email
-      //   }
-      // };
       
       // Get the MHID from the response
       setGeneratedMHID(response.data.mhid);
@@ -81,7 +96,42 @@ const RegisterForm = ({ isOpen, onClose, openLoginForm }) => {
       
     } catch (error) {
       console.error("Registration error:", error);
-      setError(error.response?.data?.message || "Registration failed. Please try again.");
+      
+      // Extract specific error message from response if available
+      if (error.response?.data?.message) {
+        // Check if the error contains specific field errors
+        if (typeof error.response.data.message === 'object') {
+          // Handle structured validation errors from server
+          const serverErrors = error.response.data.message;
+          
+          // Update the errors state with server validation errors
+          const newErrors = { ...errors };
+          
+          // Map server error fields to our form fields
+          Object.keys(serverErrors).forEach(field => {
+            if (field === 'password') {
+              newErrors.password = serverErrors[field];
+            } else {
+              // Add other field errors to the form
+              newErrors[field] = serverErrors[field];
+            }
+          });
+          
+          setErrors(newErrors);
+        } else {
+          // Handle string error message
+          setErrors(prev => ({ 
+            ...prev, 
+            server: error.response.data.message 
+          }));
+        }
+      } else {
+        // Generic error if no specific message
+        setErrors(prev => ({ 
+          ...prev, 
+          server: "Registration failed. Please try again." 
+        }));
+      }
     } finally {
       setLoading(false);
     }
@@ -99,6 +149,11 @@ const RegisterForm = ({ isOpen, onClose, openLoginForm }) => {
       password: "",
       confirmPassword: ""
     });
+    setErrors({
+      password: "",
+      confirmPassword: "",
+      server: ""
+    });
     setRegistrationSuccess(false);
     
     // Close registration form and open login form
@@ -108,6 +163,13 @@ const RegisterForm = ({ isOpen, onClose, openLoginForm }) => {
       onClose();
       navigate("/login");
     }
+  };
+
+  const copyToClipboard = () => {
+    navigator.clipboard.writeText(generatedMHID).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
   };
 
   // If the modal is not open, don't render anything
@@ -128,18 +190,32 @@ const RegisterForm = ({ isOpen, onClose, openLoginForm }) => {
           </button>
         </div>
 
-        {error && (
-          <div className="bg-red-500 bg-opacity-20 border border-red-500 text-red-500 px-4 py-2 rounded mb-4">
-            {error}
+        {errors.server && (
+          <div className="bg-[#1a1a1a] bg-opacity-20 border border-[#A3CFF0] text-red-500 px-4 py-2 rounded mb-4">
+            {errors.server}
           </div>
         )}
 
         {registrationSuccess ? (
           <div className="text-center py-8">
-            <div className="mb-6 bg-green-500 bg-opacity-20 border border-green-500 text-green-400 px-6 py-4 rounded">
-              <h3 className="text-xl font-bold mb-2">Registration Successful!</h3>
-              <p>Your Mahotsav ID: <span className="font-bold">{generatedMHID}</span></p>
-              <p className="mt-2">Please save this ID as you will need it to login.</p>
+            <div className="mb-6 border border-[#A3CFF0] text-white px-6 py-4 rounded">
+              <h3 className="text-xl font-bold mb-2 text-[#A3CFF0]">Registration Successful!</h3>
+              <p>Your Mahotsav ID:</p>
+              <div className="flex items-center justify-center mt-2 space-x-2">
+                <span className="font-bold text-xl text-white">{generatedMHID}</span>
+                <button
+                  onClick={copyToClipboard}
+                  className="ml-2 p-1 rounded hover:bg-[#A3CFF0]/20 transition-colors"
+                  title="Copy to clipboard"
+                >
+                  {copied ? (
+                    <Check className="h-5 w-5 text-green-400" />
+                  ) : (
+                    <Copy className="h-5 w-5 text-[#A3CFF0]" />
+                  )}
+                </button>
+              </div>
+              <p className="mt-4">Please save this ID as you will need it to login.</p>
             </div>
             <button
               onClick={handleProceedToLogin}
@@ -164,6 +240,9 @@ const RegisterForm = ({ isOpen, onClose, openLoginForm }) => {
                   className="shadow appearance-none border border-[#A3CFF0] bg-[#1a1a1a] bg-opacity-50 rounded w-full py-2 px-3 text-white leading-tight focus:outline-none focus:border-[#89BCE6] focus:ring-1 focus:ring-[#89BCE6] transition-all duration-200"
                   required
                 />
+                {errors.firstName && (
+                  <p className="text-red-500 text-xs italic mt-1">{errors.firstName}</p>
+                )}
               </div>
 
               <div className="space-y-2">
@@ -179,6 +258,9 @@ const RegisterForm = ({ isOpen, onClose, openLoginForm }) => {
                   className="shadow appearance-none border border-[#A3CFF0] bg-[#1a1a1a] bg-opacity-50 rounded w-full py-2 px-3 text-white leading-tight focus:outline-none focus:border-[#89BCE6] focus:ring-1 focus:ring-[#89BCE6] transition-all duration-200"
                   required
                 />
+                {errors.lastName && (
+                  <p className="text-red-500 text-xs italic mt-1">{errors.lastName}</p>
+                )}
               </div>
               
               <div className="space-y-2">
@@ -194,6 +276,9 @@ const RegisterForm = ({ isOpen, onClose, openLoginForm }) => {
                   className="shadow appearance-none border border-[#A3CFF0] bg-[#1a1a1a] bg-opacity-50 rounded w-full py-2 px-3 text-white leading-tight focus:outline-none focus:border-[#89BCE6] focus:ring-1 focus:ring-[#89BCE6] transition-all duration-200"
                   required
                 />
+                {errors.email && (
+                  <p className="text-red-500 text-xs italic mt-1">{errors.email}</p>
+                )}
               </div>
               
               <div className="space-y-2">
@@ -212,6 +297,9 @@ const RegisterForm = ({ isOpen, onClose, openLoginForm }) => {
                     [&::-webkit-calendar-picker-indicator]:bg-[#A3CFF0] [&::-webkit-calendar-picker-indicator]:rounded-full [&::-webkit-calendar-picker-indicator]:p-1"
                   required
                 />
+                {errors.dob && (
+                  <p className="text-red-500 text-xs italic mt-1">{errors.dob}</p>
+                )}
               </div>
 
               <div className="space-y-2">
@@ -227,6 +315,9 @@ const RegisterForm = ({ isOpen, onClose, openLoginForm }) => {
                   className="shadow appearance-none border border-[#A3CFF0] bg-[#1a1a1a] bg-opacity-50 rounded w-full py-2 px-3 text-white leading-tight focus:outline-none focus:border-[#89BCE6] focus:ring-1 focus:ring-[#89BCE6] transition-all duration-200"
                   required
                 />
+                {errors.phone && (
+                  <p className="text-red-500 text-xs italic mt-1">{errors.phone}</p>
+                )}
               </div>
               
               <div className="space-y-2">
@@ -242,6 +333,9 @@ const RegisterForm = ({ isOpen, onClose, openLoginForm }) => {
                   className="shadow appearance-none border border-[#A3CFF0] bg-[#1a1a1a] bg-opacity-50 rounded w-full py-2 px-3 text-white leading-tight focus:outline-none focus:border-[#89BCE6] focus:ring-1 focus:ring-[#89BCE6] transition-all duration-200"
                   required
                 />
+                {errors.college && (
+                  <p className="text-red-500 text-xs italic mt-1">{errors.college}</p>
+                )}
               </div>
               
               <div className="space-y-2">
@@ -254,9 +348,12 @@ const RegisterForm = ({ isOpen, onClose, openLoginForm }) => {
                   name="password"
                   value={formData.password}
                   onChange={handleInputChange}
-                  className="shadow appearance-none border border-[#A3CFF0] bg-[#1a1a1a] bg-opacity-50 rounded w-full py-2 px-3 text-white leading-tight focus:outline-none focus:border-[#89BCE6] focus:ring-1 focus:ring-[#89BCE6] transition-all duration-200"
+                  className={`shadow appearance-none border ${errors.password ? 'border-red-500' : 'border-[#A3CFF0]'} bg-[#1a1a1a] bg-opacity-50 rounded w-full py-2 px-3 text-white leading-tight focus:outline-none focus:border-[#89BCE6] focus:ring-1 focus:ring-[#89BCE6] transition-all duration-200`}
                   required
                 />
+                {errors.password && (
+                  <p className="text-red-500 text-xs italic mt-1">{errors.password}</p>
+                )}
               </div>
               
               <div className="space-y-2">
@@ -269,11 +366,11 @@ const RegisterForm = ({ isOpen, onClose, openLoginForm }) => {
                   name="confirmPassword"
                   value={formData.confirmPassword}
                   onChange={handleInputChange}
-                  className={`shadow appearance-none border ${passwordError ? 'border-red-500' : 'border-[#A3CFF0]'} bg-[#1a1a1a] bg-opacity-50 rounded w-full py-2 px-3 text-white leading-tight focus:outline-none focus:border-[#89BCE6] focus:ring-1 focus:ring-[#89BCE6] transition-all duration-200`}
+                  className={`shadow appearance-none border ${errors.confirmPassword ? 'border-red-500' : 'border-[#A3CFF0]'} bg-[#1a1a1a] bg-opacity-50 rounded w-full py-2 px-3 text-white leading-tight focus:outline-none focus:border-[#89BCE6] focus:ring-1 focus:ring-[#89BCE6] transition-all duration-200`}
                   required
                 />
-                {passwordError && (
-                  <p className="text-red-500 text-xs italic">{passwordError}</p>
+                {errors.confirmPassword && (
+                  <p className="text-red-500 text-xs italic mt-1">{errors.confirmPassword}</p>
                 )}
               </div>
             </div>
@@ -282,7 +379,7 @@ const RegisterForm = ({ isOpen, onClose, openLoginForm }) => {
               <button
                 type="submit"
                 className="bg-[#A3CFF0] hover:bg-[#89BCE6] text-black font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline w-full transition-all duration-200 transform hover:scale-[1.02] disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:scale-100"
-                disabled={passwordError !== "" || loading}
+                disabled={loading || (errors.password || errors.confirmPassword) !== ""}
               >
                 {loading ? 'Registering...' : 'Register'}
               </button>

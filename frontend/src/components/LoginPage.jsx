@@ -100,7 +100,7 @@ const LoginPage = ({ isOpen, onClose, initialMHID }) => {
         )}
         
         {showMHIDInfo && (
-          <div className="bg-green-500 bg-opacity-20 border border-green-500 text-green-400 px-4 py-2 rounded mb-4">
+          <div className="bg-[#1a1a1a] bg-opacity-20 border border-[#A3CFF0] text-white px-4 py-2 rounded mb-4">
             <p>Registration successful! Your Mahotsav ID: <span className="font-bold">{initialMHID}</span></p>
             <p className="text-sm mt-1">Please use this ID along with your password to login.</p>
           </div>
