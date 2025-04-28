@@ -1,0 +1,77 @@
+:root {
+  /* Dark theme variables (default) */
+  --bg-primary: #0A1426;
+  --bg-secondary: #152137;
+  --bg-card: #1a1a1a;
+  --text-primary: #ffffff;
+  --text-secondary: #A3CFF0;
+  --border-color: rgba(163, 207, 240, 0.3);
+  --border-color-hover: #A3CFF0;
+  --button-bg: #A3CFF0;
+  --button-text: #000000;
+  --button-hover: #89BCE6;
+  --input-bg: #0A1426;
+}
+
+/* Light theme variables */
+body.light-theme {
+  --bg-primary: #f0f8ff;
+  --bg-secondary: #e1eeff;
+  --bg-card: #ffffff;
+  --text-primary: #0A1426;
+  --text-secondary: #0a4d81;
+  --border-color: rgba(10, 77, 129, 0.3);
+  --border-color-hover: #0a4d81;
+  --button-bg: #0a4d81;
+  --button-text: #ffffff;
+  --button-hover: #0d6ebd;
+  --input-bg: #e1eeff;
+}
+
+/* Apply these variables throughout the app */
+.bg-theme-primary {
+  background-color: var(--bg-primary);
+}
+
+.bg-theme-secondary {
+  background-color: var(--bg-secondary);
+}
+
+.bg-theme-card {
+  background-color: var(--bg-card);
+}
+
+.text-theme-primary {
+  color: var(--text-primary);
+}
+
+.text-theme-secondary {
+  color: var(--text-secondary);
+}
+
+.border-theme {
+  border-color: var(--border-color);
+}
+
+.border-theme-hover:hover {
+  border-color: var(--border-color-hover);
+}
+
+.button-theme {
+  background-color: var(--button-bg);
+  color: var(--button-text);
+}
+
+.button-theme:hover {
+  background-color: var(--button-hover);
+}
+
+.input-theme {
+  background-color: var(--input-bg);
+  color: var(--text-primary);
+  border-color: var(--border-color);
+}
+
+.input-theme:focus {
+  border-color: var(--border-color-hover);
+}
