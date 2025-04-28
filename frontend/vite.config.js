@@ -11,10 +11,10 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: 'http://localhost:10000',
+        target: 'https://mahotsav-backend.onrender.com',
         changeOrigin: true,
       },
-      '/uploads': 'http://localhost:10000',
+      '/uploads': 'https://mahotsav-backend.onrender.com',
     }
   }
 })

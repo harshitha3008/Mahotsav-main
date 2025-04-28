@@ -125,7 +125,7 @@ useEffect(() => {
       console.log("UserID (MHID) value:", formData.userId);
 
       const { data } = await axios.post(
-        "http://localhost:10000/api/registrations",
+        "https://mahotsav-backend.onrender.com/api/registrations",
         formData,
         config
       );

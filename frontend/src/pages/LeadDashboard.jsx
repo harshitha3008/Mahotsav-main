@@ -42,7 +42,7 @@ const LeadDashboard = () => {
       // Lowercase the adminId for case-insensitive comparison
       const leadIdLower = leadId.toLowerCase();
       
-      const response = await fetch("http://localhost:10000/api/registration", {
+      const response = await fetch("https://mahotsav-backend.onrender.com/api/registration", {
         headers: {
           "Authorization": `Bearer ${localStorage.getItem("token")}`
         }

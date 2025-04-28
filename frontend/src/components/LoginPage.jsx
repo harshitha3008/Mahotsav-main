@@ -47,7 +47,7 @@ const LoginPage = ({ isOpen, onClose, initialMHID }) => {
       setError("");
       
       // Send login request to backend API
-      const response = await axios.post('http://localhost:10000/api/users/login', formData);
+      const response = await axios.post('https://mahotsav-backend.onrender.com/api/users/login', formData);
       
       // Use the login function from AuthContext instead of directly setting localStorage
       login(response.data);

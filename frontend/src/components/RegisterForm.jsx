@@ -88,7 +88,7 @@ const RegisterForm = ({ isOpen, onClose, openLoginForm }) => {
       };
       
       // Send registration request to backend API
-      const response = await axios.post('http://localhost:10000/api/users/register', requestData);
+      const response = await axios.post('https://mahotsav-backend.onrender.com/api/users/register', requestData);
       
       // Get the MHID from the response
       setGeneratedMHID(response.data.mhid);

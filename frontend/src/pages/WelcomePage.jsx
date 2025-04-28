@@ -60,7 +60,7 @@ const WelcomePage = () => {
           };
           
           const { data } = await axios.get(
-            "http://localhost:10000/api/users/profile",
+            "https://mahotsav-backend.onrender.com/api/users/profile",
             config
           );
           
@@ -118,7 +118,7 @@ const WelcomePage = () => {
       };
       
       const { data } = await axios.put(
-        "http://localhost:10000/api/users/profile",
+        "https://mahotsav-backend.onrender.com/api/users/profile",
         formData,
         config
       );
@@ -168,7 +168,7 @@ const WelcomePage = () => {
       };
       
       await axios.put(
-        "http://localhost:10000/api/users/changepassword",
+        "https://mahotsav-backend.onrender.com/api/users/changepassword",
         {
           currentPassword: passwordData.currentPassword,
           newPassword: passwordData.newPassword

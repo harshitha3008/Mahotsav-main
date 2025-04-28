@@ -26,7 +26,7 @@ const AdminLogin = ({ onClose }) => {
     };
 
     try {
-      const response = await fetch("http://localhost:10000/api/admin/login", {
+      const response = await fetch("https://mahotsav-backend.onrender.com/api/admin/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

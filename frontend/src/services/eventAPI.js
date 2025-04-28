@@ -34,7 +34,7 @@ export const fetchEventsByAdmin = async () => {
     console.log('Sending request to /api/events/byAdmin with token:', 
                 token.substring(0, 20) + '...');
     
-    const response = await fetch('http://localhost:10000/api/events/byAdmin', {
+    const response = await fetch('https://mahotsav-backend.onrender.com/api/events/byAdmin', {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -98,7 +98,7 @@ export const submitEvent = async (formData) => {
     // Get token using the helper function
     const token = getAuthToken();
     
-    const response = await fetch('http://localhost:10000/api/events', {
+    const response = await fetch('https://mahotsav-backend.onrender.com/api/events', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${token}`
@@ -129,7 +129,7 @@ export const fetchEventDetails = async (eventId) => {
   try {
     const token = getAuthToken();
     
-    const response = await fetch(`http://localhost:10000/api/events/${eventId}`, {
+    const response = await fetch(`https://mahotsav-backend.onrender.com/api/events/${eventId}`, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${token}`,
