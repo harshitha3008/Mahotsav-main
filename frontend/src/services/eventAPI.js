@@ -1,3 +1,72 @@
+// Helper function to get token from localStorage
+// Modified getAuthToken function with more detailed logging
+const getAuthToken = () => {
+  console.log('Getting auth token...');
+  const adminInfoStr = localStorage.getItem('adminInfo');
+  console.log('adminInfo from localStorage:', adminInfoStr);
+  
+  if (!adminInfoStr) {
+    console.error('No adminInfo found in localStorage');
+    throw new Error('No authentication information found');
+  }
+  
+  try {
+    const adminInfo = JSON.parse(adminInfoStr);
+    console.log('Parsed adminInfo:', adminInfo);
+    
+    if (!adminInfo.token) {
+      console.error('No token found in adminInfo');
+      throw new Error('Authentication token not found');
+    }
+    
+    console.log('Using token:', adminInfo.token.substring(0, 20) + '...');
+    return adminInfo.token;
+  } catch (error) {
+    console.error('Error parsing admin info:', error);
+    throw new Error('Invalid authentication data');
+  }
+};
+
+export const fetchEventsByAdmin = async () => {
+  try {
+    const token = getAuthToken();
+    
+    console.log('Sending request to /api/events/byAdmin with token:', 
+                token.substring(0, 20) + '...');
+    
+    const response = await fetch('http://localhost:10000/api/events/byAdmin', {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    });
+    
+    console.log('Response status:', response.status);
+    console.log('Response headers:', [...response.headers.entries()]);
+    
+    if (response.status === 401) {
+      console.error('Authentication failed. Please log in again.');
+      // Don't remove token for debugging purposes right now
+      // localStorage.removeItem('adminInfo');
+      return { success: false, message: 'Session expired. Please log in again.', events: [] };
+    }
+    
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error('Error response:', errorData);
+      throw new Error(errorData.message || `Server error: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    console.log('Success response:', data);
+    return data;
+  } catch (error) {
+    console.error('Error fetching events:', error);
+    throw error;
+  }
+};
+
 export const submitEvent = async (formData) => {
   // Create FormData object for file upload
   const data = new FormData();
@@ -26,10 +95,10 @@ export const submitEvent = async (formData) => {
   }
   
   try {
-    // Add token to the request headers for authentication
-    const token = localStorage.getItem('token');
+    // Get token using the helper function
+    const token = getAuthToken();
     
-    const response = await fetch('/api/events', {
+    const response = await fetch('http://localhost:10000/api/events', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${token}`
@@ -58,13 +127,9 @@ export const submitEvent = async (formData) => {
 
 export const fetchEventDetails = async (eventId) => {
   try {
-    const token = localStorage.getItem('token');
+    const token = getAuthToken();
     
-    if (!token) {
-      throw new Error('No authentication token found');
-    }
-    
-    const response = await fetch(`/api/events/${eventId}`, {
+    const response = await fetch(`http://localhost:10000/api/events/${eventId}`, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -84,41 +149,40 @@ export const fetchEventDetails = async (eventId) => {
   }
 };
 
-export const fetchEventsByAdmin = async () => {
-  try {
-    const token = localStorage.getItem('token');
+// export const fetchEventsByAdmin = async () => {
+//   try {
+//     const token = getAuthToken();
     
-    if (!token) {
-      throw new Error('No authentication token found');
-    }
+//     const response = await fetch('http://localhost:10000/api/events/byAdmin', {
+//       method: 'GET',
+//       headers: {
+//         'Authorization': `Bearer ${token}`,
+//         'Content-Type': 'application/json'
+//       }
+//     });
     
-    const response = await fetch('/api/events/byAdmin', {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      }
-    });
+//     if (response.status === 401) {
+//       // Handle unauthorized specifically
+//       console.error('Authentication failed. Please log in again.');
+//       localStorage.removeItem('adminInfo'); // Clear invalid token
+//       return { success: false, message: 'Session expired. Please log in again.', events: [] };
+//     }
     
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.message || `Server error: ${response.status}`);
-    }
+//     if (!response.ok) {
+//       const errorData = await response.json();
+//       throw new Error(errorData.message || `Server error: ${response.status}`);
+//     }
     
-    return await response.json();
-  } catch (error) {
-    console.error('Error fetching events:', error);
-    throw error;
-  }
-};
+//     return await response.json();
+//   } catch (error) {
+//     console.error('Error fetching events:', error);
+//     throw error;
+//   }
+// };
 
 export const updateEvent = async (eventId, formData) => {
   try {
-    const token = localStorage.getItem('token');
-    
-    if (!token) {
-      throw new Error('No authentication token found');
-    }
+    const token = getAuthToken();
     
     // Create FormData object for file upload if there's an image
     let data;
@@ -187,11 +251,7 @@ export const updateEvent = async (eventId, formData) => {
 
 export const deleteEvent = async (eventId) => {
   try {
-    const token = localStorage.getItem('token');
-    
-    if (!token) {
-      throw new Error('No authentication token found');
-    }
+    const token = getAuthToken();
     
     // Make sure we're using the full API URL as in updateEvent function
     const API_URL = import.meta.env?.VITE_API_URL || '';
