@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const bcrypt = require('bcryptjs');
+const bcryptjs = require('bcryptjsjs');
 const crypto = require('crypto');
 
 const userSchema = new mongoose.Schema({
@@ -45,19 +45,19 @@ const userSchema = new mongoose.Schema({
   }
 });
 
-// Encrypt password using bcrypt
+// Encrypt password using bcryptjs
 userSchema.pre('save', async function(next) {
   if (!this.isModified('password')) {
     next();
   }
   
-  const salt = await bcrypt.genSalt(10);
-  this.password = await bcrypt.hash(this.password, salt);
+  const salt = await bcryptjs.genSalt(10);
+  this.password = await bcryptjs.hash(this.password, salt);
 });
 
 // Match user entered password to hashed password in database
 userSchema.methods.matchPassword = async function(enteredPassword) {
-  return await bcrypt.compare(enteredPassword, this.password);
+  return await bcryptjs.compare(enteredPassword, this.password);
 };
 
 // Get the next available MHID with a specific number

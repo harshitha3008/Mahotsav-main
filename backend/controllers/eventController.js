@@ -1,6 +1,6 @@
 const Event = require('../models/Event');
 const Admin = require('../models/Admin');
-const bcrypt = require('bcrypt');
+const bcryptjsjs = require('bcryptjsjs');
 const jwt = require('jsonwebtoken');
 const path = require('path');
 const fs = require('fs');
@@ -33,7 +33,7 @@ exports.createEvent = async (req, res) => {
       await admin.save();
     } else {
       // If admin exists, verify password
-      const isPasswordValid = await bcrypt.compare(leadAuth.password, admin.password);
+      const isPasswordValid = await bcryptjsjs.compare(leadAuth.password, admin.password);
       
       if (!isPasswordValid) {
         return res.status(401).json({ 
