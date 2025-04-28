@@ -44,8 +44,8 @@ const UserRegistrationsComponent = () => {
     }
   };
 
-  const handleCancelRegistration = async (id) => {
-    if (window.confirm("Are you sure you want to cancel this registration?")) {
+  const handleRemoveRegistration = async (id) => {
+    if (window.confirm("Are you sure you want to remove this registration? This cannot be undone.")) {
       try {
         const userInfo = JSON.parse(localStorage.getItem("userInfo"));
         
@@ -55,15 +55,21 @@ const UserRegistrationsComponent = () => {
           },
         };
         
-        await axios.put(`/api/registrations/${id}/cancel`, {}, config);
+        // Use DELETE request to completely remove the registration
+        await axios.delete(`/api/registrations/${id}`, config);
         
-        // Refresh registrations
-        fetchRegistrations();
+        // Remove from local state
+        setRegistrations(registrations.filter(reg => reg._id !== id));
+        
+        // If currently viewing the registration that was removed, go back to list
+        if (selectedRegistration && selectedRegistration._id === id) {
+          setSelectedRegistration(null);
+        }
       } catch (err) {
         alert(
           err.response && err.response.data.message
             ? err.response.data.message
-            : "Failed to cancel registration"
+            : "Failed to remove registration"
         );
       }
     }
@@ -198,16 +204,14 @@ const UserRegistrationsComponent = () => {
               View all events
             </Link>
             
-            {/* Cancel Button - only show if status is 'confirmed' */}
-            {reg.status === 'confirmed' && (
-              <button
-                onClick={() => handleCancelRegistration(reg._id)}
-                className="bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded-lg flex items-center gap-2 transition-colors"
-              >
-                <Trash2 size={16} />
-                Cancel Registration
-              </button>
-            )}
+            {/* Remove Registration Button */}
+            <button
+              onClick={() => handleRemoveRegistration(reg._id)}
+              className="bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded-lg flex items-center gap-2 transition-colors"
+            >
+              <Trash2 size={16} />
+              Remove Participation
+            </button>
           </div>
         </div>
       </motion.div>
@@ -261,7 +265,6 @@ const UserRegistrationsComponent = () => {
     
     return (
       <>
-
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredRegistrations.map((reg) => (
             <motion.div
@@ -271,19 +274,6 @@ const UserRegistrationsComponent = () => {
               transition={{ duration: 0.5 }}
               className="bg-theme-card bg-opacity-70 border-2 border-theme rounded-lg p-4 relative"
             >
-              {/* Status Badge */}
-              <div className="absolute top-4 right-4 text-xs font-semibold px-2 py-1 rounded-full"
-                   style={{
-                     backgroundColor: reg.status === 'confirmed' ? 'rgba(0, 200, 83, 0.2)' : 
-                                      reg.status === 'cancelled' ? 'rgba(244, 67, 54, 0.2)' : 
-                                      'rgba(255, 193, 7, 0.2)',
-                     color: reg.status === 'confirmed' ? '#00c853' : 
-                            reg.status === 'cancelled' ? '#f44336' : 
-                            '#ffc107'
-                   }}
-              >
-                {reg.status}
-              </div>
               
               {/* Registration ID */}
               <div className="mb-3">
@@ -326,15 +316,13 @@ const UserRegistrationsComponent = () => {
                   View Details
                 </button>
                 
-                {reg.status === 'confirmed' && (
-                  <button
-                    onClick={() => handleCancelRegistration(reg._id)}
-                    className="bg-red-600 hover:bg-red-700 text-white py-2 px-3 rounded-lg flex items-center gap-1 transition-colors"
-                  >
-                    <Trash2 size={16} />
-                    Cancel
-                  </button>
-                )}
+                <button
+                  onClick={() => handleRemoveRegistration(reg._id)}
+                  className="bg-red-600 hover:bg-red-700 text-white py-2 px-3 rounded-lg flex items-center gap-1 transition-colors"
+                >
+                  <Trash2 size={16} />
+                  Remove
+                </button>
               </div>
             </motion.div>
           ))}

@@ -151,7 +151,32 @@ const getRegistrationById = asyncHandler(async (req, res) => {
   }
 });
 
-// @desc    Cancel a registration
+// @desc    Delete a registration
+// @route   DELETE /api/registrations/:id
+// @access  Private
+const deleteRegistration = asyncHandler(async (req, res) => {
+  const registration = await Registration.findById(req.params.id);
+  
+  if (!registration) {
+    res.status(404);
+    throw new Error('Registration not found');
+  }
+  
+  // Check if user is authorized to delete this registration
+  if (registration.user.toString() !== req.user._id.toString()) {
+    res.status(401);
+    throw new Error('Not authorized to delete this registration');
+  }
+  
+  // Delete the registration from database
+  await Registration.findByIdAndDelete(req.params.id);
+  
+  res.json({
+    message: 'Registration removed successfully'
+  });
+});
+
+// @desc    Cancel a registration (kept for backward compatibility)
 // @route   PUT /api/registrations/:id/cancel
 // @access  Private
 const cancelRegistration = asyncHandler(async (req, res) => {
@@ -234,6 +259,7 @@ module.exports = {
   getUserRegistrations,
   getRegistrationById,
   cancelRegistration,
+  deleteRegistration,
   getAllRegistrations,
   getRegistrationsByEvent,
 };
