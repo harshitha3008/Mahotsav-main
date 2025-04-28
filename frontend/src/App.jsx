@@ -13,7 +13,7 @@ import Schedule from "./components/Schedule";
 import AdminLogin from "./components/AdminLogin";
 import LoginPage from "./components/LoginPage";
 import RegisterForm from "./components/RegisterForm";
-import WelcomePage from "./pages/welcomePage";
+import WelcomePage from "./pages/WelcomePage";
 import Dashboard from './pages/coreDashboard';
 import LeadDashboard from './pages/LeadDashboard'; // Import the new LeadDashboard component
 import AddEventForm from './components/AddEventForm';
