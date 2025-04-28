@@ -261,33 +261,6 @@ const UserRegistrationsComponent = () => {
     
     return (
       <>
-        {/* Filter controls */}
-        <div className="mb-6 flex flex-wrap gap-2">
-          <button 
-            onClick={() => setFilterStatus("all")}
-            className={`px-4 py-2 rounded-lg ${filterStatus === "all" 
-              ? "button-theme" 
-              : "bg-theme-primary bg-opacity-20 text-theme-primary"}`}
-          >
-            All
-          </button>
-          <button 
-            onClick={() => setFilterStatus("confirmed")}
-            className={`px-4 py-2 rounded-lg ${filterStatus === "confirmed" 
-              ? "bg-green-600 text-white" 
-              : "bg-theme-primary bg-opacity-20 text-theme-primary"}`}
-          >
-            Confirmed
-          </button>
-          <button 
-            onClick={() => setFilterStatus("cancelled")}
-            className={`px-4 py-2 rounded-lg ${filterStatus === "cancelled" 
-              ? "bg-red-600 text-white" 
-              : "bg-theme-primary bg-opacity-20 text-theme-primary"}`}
-          >
-            Cancelled
-          </button>
-        </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredRegistrations.map((reg) => (
