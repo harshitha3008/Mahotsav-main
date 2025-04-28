@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const bcryptjsjs = require('bcryptjsjs');
+const bcryptjs = require('bcryptjs');
 
 const AdminSchema = new mongoose.Schema({
   adminId: {
