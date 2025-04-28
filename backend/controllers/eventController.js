@@ -44,12 +44,12 @@ exports.createEvent = async (req, res) => {
     }
 
     // Handle image upload if provided
+    // Handle image upload if provided
     let imageUrl = null;
-    if (req.file) {
-      // In a production app, you'd upload to cloud storage
-      // For this example, we'll just use the file path
-      imageUrl = `/uploads/${req.file.filename}`;
+    if (req.file && req.file.location) {
+      imageUrl = req.file.location; // S3 URL
     }
+
 
     let adminId = null;
 

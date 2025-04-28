@@ -30,7 +30,7 @@ mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost:27017/mahotsav')
 // Routes
 app.use('/api/admin', adminRoutes);
 app.use('/api/users', userRoutes);
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+// app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // API routes
 app.use('/api/events', apiRoutes);
