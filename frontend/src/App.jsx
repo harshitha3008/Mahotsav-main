@@ -15,6 +15,7 @@ import LoginPage from "./components/LoginPage";
 import RegisterForm from "./components/RegisterForm";
 import WelcomePage from "./pages/welcomePage";
 import Dashboard from './pages/coreDashboard';
+import LeadDashboard from './pages/LeadDashboard'; // Import the new LeadDashboard component
 import AddEventForm from './components/AddEventForm';
 import EventDetails from "./components/EventDetails";
 import ModifyDetail from "./components/ModifyDetail";
@@ -42,6 +43,27 @@ const ProtectedAdminRoute = ({ children }) => {
     }
   };
   if (!isAuthenticated()) {
+    return <Navigate to="/" replace />;
+  }
+  return children;
+};
+
+// Protected route for lead dashboard
+const ProtectedLeadRoute = ({ children }) => {
+  const isLeadAuthenticated = () => {
+    const adminInfoString = localStorage.getItem("adminInfo");
+    if (!adminInfoString) {
+      return false;
+    }
+    try {
+      const adminInfo = JSON.parse(adminInfoString);
+      return adminInfo && adminInfo.token && adminInfo.role === 'lead';
+    } catch (error) {
+      console.error("Error parsing admin info:", error);
+      return false;
+    }
+  };
+  if (!isLeadAuthenticated()) {
     return <Navigate to="/" replace />;
   }
   return children;
@@ -204,14 +226,19 @@ function MainAppContent() {
             </ProtectedUserRoute>
           } />
           <Route path="/my-registrations" element={
-          <ProtectedUserRoute>
-            <UserRegistrationsComponent />
-          </ProtectedUserRoute>
-        } />
+            <ProtectedUserRoute>
+              <UserRegistrationsComponent />
+            </ProtectedUserRoute>
+          } />
           <Route path="/dashboard" element={ 
             <ProtectedAdminRoute> 
               <Dashboard /> 
             </ProtectedAdminRoute>
+          } />
+          <Route path="/lead-dashboard" element={ 
+            <ProtectedLeadRoute> 
+              <LeadDashboard /> 
+            </ProtectedLeadRoute>
           } />
           <Route path="/add-event" element={ 
             <ProtectedAdminRoute> 

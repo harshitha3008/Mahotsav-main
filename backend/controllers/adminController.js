@@ -82,28 +82,38 @@ exports.loginAdmin = async (req, res) => {
       return res.status(401).json({ message: 'Invalid role selected' });
     }
 
-    // Only allow core admins to access the dashboard
-    if (admin.role !== 'core') {
-      console.log('Rejecting login for dashboard access: role is not core');
-      return res.status(403).json({ 
-        message: 'Only core admins can access the dashboard',
+    // Generate token and return appropriate response based on role
+    const token = generateToken(admin._id, admin.adminId, admin.role);
+    
+    if (admin.role === 'core') {
+      console.log('Login successful for core admin');
+      res.json({
         _id: admin._id,
         adminId: admin.adminId,
         role: admin.role,
-        token: generateToken(admin._id),
+        token: token,
+        accessLevel: 'full'
+      });
+    } else if (admin.role === 'lead') {
+      console.log('Login successful for lead admin');
+      res.json({
+        _id: admin._id,
+        adminId: admin.adminId,
+        role: admin.role,
+        token: token,
+        accessLevel: 'lead'
+      });
+    } else {
+      // Handle any other roles (though we shouldn't get here based on role validation)
+      console.log(`Login successful for ${admin.role} admin`);
+      res.json({
+        _id: admin._id,
+        adminId: admin.adminId,
+        role: admin.role,
+        token: token,
         accessLevel: 'limited'
       });
     }
-
-    console.log('Login successful for core admin');
-    
-    res.json({
-      _id: admin._id,
-      adminId: admin.adminId, // Included adminId in the response
-      role: admin.role,       // Included role in the response
-      token: generateToken(admin._id, admin.adminId, admin.role), // Updated to pass adminId and role
-      accessLevel: 'full'
-    });
   } catch (error) {
     console.error('Error in loginAdmin:', error);
     res.status(500).json({ message: 'Server error' });

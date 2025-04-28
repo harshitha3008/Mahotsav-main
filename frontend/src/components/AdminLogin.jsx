@@ -43,28 +43,29 @@ const AdminLogin = ({ onClose }) => {
         localStorage.setItem("token", data.token);
         // In AdminLogin.jsx after successful login
         console.log("Token being stored:", data.token);
-        // Check if this admin has full access (core role)
-        if (data.accessLevel === 'full') {
-          console.log("Core admin logged in, navigating to dashboard");
-          
-          // First close the popup if it exists, then navigate
-          if (onClose) {
-            onClose();
-          }
-          
-          // Use setTimeout to ensure the popup closing animation completes before navigation
-          setTimeout(() => {
-            navigate("/dashboard");
-          }, 100);
-        } else {
-          // Limited access - lead role doesn't get dashboard access
-          setError("Your account doesn't have access to the dashboard");
-          console.log("Limited access admin logged in");
+        
+        // Close the popup if it exists
+        if (onClose) {
+          onClose();
         }
+        
+        // Use setTimeout to ensure the popup closing animation completes before navigation
+        setTimeout(() => {
+          // Navigate based on role
+          if (data.role === 'core') {
+            console.log("Core admin logged in, navigating to dashboard");
+            navigate("/dashboard");
+          } else if (data.role === 'lead') {
+            console.log("Lead admin logged in, navigating to lead dashboard");
+            navigate("/lead-dashboard");
+          } else {
+            setError("Unknown role type. Please contact administrator.");
+          }
+        }, 100);
       } else {
         // Handle error based on the response status
         if (response.status === 403) {
-          setError("Access denied. Only core admins can access the dashboard.");
+          setError("Access denied. Please check your role and permissions.");
         } else if (response.status === 401 && data.message === 'Invalid role selected') {
           setError("The selected role doesn't match your account. Please select the correct role.");
         } else {

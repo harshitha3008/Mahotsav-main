@@ -7,6 +7,7 @@ const adminRoutes = require('./routes/adminRoutes');
 const userRoutes = require('./routes/userRoutes');
 const apiRoutes = require('./routes/api');
 const registrationRoutes = require('./routes/registrationRoutes');
+const registrationsRoutes = require('./routes/registrationsRoutes');
 
 // Load environment variables
 dotenv.config();
@@ -34,6 +35,7 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 // API routes
 app.use('/api/events', apiRoutes);
 app.use('/api/registrations', registrationRoutes);
+app.use('/api/registration', registrationsRoutes);
 
 // Start server
 const PORT = process.env.PORT || 10000;

@@ -149,36 +149,6 @@ export const fetchEventDetails = async (eventId) => {
   }
 };
 
-// export const fetchEventsByAdmin = async () => {
-//   try {
-//     const token = getAuthToken();
-    
-//     const response = await fetch('http://localhost:10000/api/events/byAdmin', {
-//       method: 'GET',
-//       headers: {
-//         'Authorization': `Bearer ${token}`,
-//         'Content-Type': 'application/json'
-//       }
-//     });
-    
-//     if (response.status === 401) {
-//       // Handle unauthorized specifically
-//       console.error('Authentication failed. Please log in again.');
-//       localStorage.removeItem('adminInfo'); // Clear invalid token
-//       return { success: false, message: 'Session expired. Please log in again.', events: [] };
-//     }
-    
-//     if (!response.ok) {
-//       const errorData = await response.json();
-//       throw new Error(errorData.message || `Server error: ${response.status}`);
-//     }
-    
-//     return await response.json();
-//   } catch (error) {
-//     console.error('Error fetching events:', error);
-//     throw error;
-//   }
-// };
 
 export const updateEvent = async (eventId, formData) => {
   try {
