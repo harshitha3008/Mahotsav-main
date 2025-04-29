@@ -1,0 +1,19 @@
+# Ignore environment variables
+.env
+.env.local
+.env.production
+.env.development
+
+# Node modules
+node_modules/
+
+# Logs
+logs/
+*.log
+
+# System files
+.DS_Store
+
+# Optional: build folders
+dist/
+build/
